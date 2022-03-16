@@ -86,18 +86,31 @@ namespace UI
     void load_screen_menu()
     {
         lv_group_t *group = lv_group_create();
-        lv_obj_t *menu = lv_list_create(nullptr);
+        lv_obj_t *scr = lv_obj_create(nullptr);
+        lv_obj_set_layout(scr, LV_LAYOUT_FLEX);
+        lv_obj_set_flex_flow(scr, LV_FLEX_FLOW_COLUMN);
+        lv_obj_set_flex_align(scr, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+        lv_obj_set_style_pad_row(scr, 0, 0);
 
-        lv_list_add_text(menu, "ESP32-Signaless");
+        lv_obj_t *title = lv_label_create(scr);
+        lv_label_set_text(title, "ESP32-Signaless");
+        lv_obj_set_style_text_font(title, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_all(title, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+        lv_obj_t *menu = lv_list_create(scr);
+        lv_obj_set_size(menu, 112, LV_SIZE_CONTENT);
+        lv_obj_set_style_pad_row(menu, 0, 0);
 
         lv_obj_t *btn_targets = lv_list_add_btn(menu, LV_SYMBOL_LIST, "Target APs");
+        lv_obj_set_style_pad_hor(btn_targets, 0, 0);
         lv_obj_add_event_cb(
             btn_targets, [](lv_event_t *e)
             { Serial.println("Pressed Targets"); },
             LV_EVENT_PRESSED, nullptr);
         lv_group_add_obj(group, btn_targets);
 
-        lv_obj_t *btn_scan = lv_list_add_btn(menu, LV_SYMBOL_WIFI, "Scan");
+        lv_obj_t *btn_scan = lv_list_add_btn(menu, LV_SYMBOL_WIFI, "Scan APs");
+        lv_obj_set_style_pad_hor(btn_scan, 0, 0);
         lv_obj_add_event_cb(
             btn_scan, [](lv_event_t *e)
             { Serial.println("Pressed Scan"); },
@@ -105,6 +118,8 @@ namespace UI
         lv_group_add_obj(group, btn_scan);
 
         lv_obj_t *btn_attack = lv_list_add_btn(menu, LV_SYMBOL_CHARGE, "Attack");
+        lv_obj_set_style_pad_hor(btn_attack, 0, 0);
+        lv_obj_set_style_text_color(btn_attack, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_add_event_cb(
             btn_attack, [](lv_event_t *e)
             { Serial.println("Pressed Attack"); },
@@ -112,6 +127,7 @@ namespace UI
         lv_group_add_obj(group, btn_attack);
 
         lv_obj_t *btn_info = lv_list_add_btn(menu, LV_SYMBOL_HOME, "Info");
+        lv_obj_set_style_pad_hor(btn_info, 0, 0);
         lv_obj_add_event_cb(
             btn_info, [](lv_event_t *e)
             { Serial.println("Pressed Info"); },
@@ -119,7 +135,6 @@ namespace UI
         lv_group_add_obj(group, btn_info);
 
         lv_indev_set_group(ir_indev, group);
-
-        lv_scr_load_anim(menu, LV_SCR_LOAD_ANIM_MOVE_LEFT, 200, 0, true);
+        lv_scr_load_anim(scr, LV_SCR_LOAD_ANIM_MOVE_LEFT, 200, 0, true);
     }
 }
