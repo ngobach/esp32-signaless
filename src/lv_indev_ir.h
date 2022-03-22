@@ -7,10 +7,12 @@
 namespace LvIndevIr
 {
     const int IR_PIN = 16;
+    const bool FIRE_ONCE = false;
 
     lv_indev_drv_t _ir_remote_drv;
     uint32_t last_key = -1;
     uint32_t last_read = 0;
+    bool fired = false;
 
     void lv_indev_ir_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
     {
@@ -20,12 +22,13 @@ namespace LvIndevIr
         const uint16_t KEY_UP = 24;
         const uint16_t KEY_DOWN = 82;
 
+        uint32_t matched_key = 0;
+
         if (IrReceiver.decode())
         {
             uint16_t command = IrReceiver.decodedIRData.command;
 
             // Serial.println(results.value);
-            uint32_t matched_key = 0;
             if (command == KEY_LEFT)
             {
                 matched_key = LV_KEY_LEFT;
@@ -51,24 +54,30 @@ namespace LvIndevIr
                 // Serial.println("Failed");
                 // Serial.println(command);
             }
-            if (matched_key) {
-                data->key = matched_key;
-                data->state = LV_INDEV_STATE_PRESSED;
-                last_key = matched_key;
-                last_read = millis();
-            }
+            last_read = millis();
             IrReceiver.resume();
         }
         else
         {
             if (millis() - last_read < 100) {
+                matched_key = last_key;
+            }
+        }
+
+        if (matched_key) {
+            if (!FIRE_ONCE || !fired) {
+                data->key = matched_key;
                 data->state = LV_INDEV_STATE_PRESSED;
-                data->key = last_key;
+                last_key = matched_key;
+                fired = true;
             } else {
                 data->state = LV_INDEV_STATE_RELEASED;
-                last_key = 0;
-                last_read = 0;
             }
+        } else {
+            data->state = LV_INDEV_STATE_RELEASED;
+            last_key = 0;
+            last_read = 0;
+            fired = false;
         }
     }
 

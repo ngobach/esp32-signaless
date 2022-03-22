@@ -3,8 +3,13 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <lvgl.h>
+#include <vector>
 #include "lv_indev_ir.h"
 #include "badwifi.h"
+
+#include "screens/common.h"
+#include "screens/attack.h"
+#include "screens/target_select.h"
 
 namespace UI
 {
@@ -23,10 +28,6 @@ namespace UI
         tft.endWrite();
         lv_disp_flush_ready(disp);
     }
-
-    void load_screen_loader();
-    void load_screen_menu();
-    void load_screen_scan();
 
     void setup()
     {
@@ -47,6 +48,7 @@ namespace UI
 
         // Finally
         load_screen_loader();
+        // load_test_screen();
     }
 
     void tick()
@@ -83,6 +85,34 @@ namespace UI
         lv_timer_set_repeat_count(timer, 1);
     }
 
+    void handle_click_attack(lv_event_t *e)
+    {
+        std::vector<BadWifi::AP> targets = BadWifi::get_targets();
+        if (targets.empty()) {
+            static lv_obj_t *msgbox;
+            msgbox = lv_msgbox_create(nullptr, "Error", "No target chosen", nullptr, true);
+            static lv_group_t *current_group;
+            current_group = ir_indev->group;
+
+            static lv_group_t *msgbox_group;
+            msgbox_group = lv_group_create();
+            lv_group_add_obj(msgbox_group, lv_msgbox_get_close_btn(msgbox));
+            lv_indev_set_group(ir_indev, NULL);
+
+            lv_timer_t *timer = lv_timer_create([] (lv_timer_t *_) {
+                lv_indev_set_group(ir_indev, msgbox_group);
+            }, 500, nullptr);
+            lv_timer_set_repeat_count(timer, 1);
+
+            lv_obj_add_event_cb(lv_msgbox_get_close_btn(msgbox), [] (lv_event_t *_) {
+                lv_msgbox_close(msgbox);
+                lv_indev_set_group(ir_indev, current_group);
+            }, LV_EVENT_PRESSED, nullptr);
+        } else {
+            // TODO:
+        }
+    }
+
     void load_screen_menu()
     {
         lv_group_t *group = lv_group_create();
@@ -95,36 +125,34 @@ namespace UI
         lv_obj_t *title = lv_label_create(scr);
         lv_label_set_text(title, "ESP32-Signaless");
         lv_obj_set_style_text_font(title, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_set_style_pad_all(title, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_hor(title, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_ver(title, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
 
         lv_obj_t *menu = lv_list_create(scr);
         lv_obj_set_size(menu, 112, LV_SIZE_CONTENT);
         lv_obj_set_style_pad_row(menu, 0, 0);
 
-        lv_obj_t *btn_targets = lv_list_add_btn(menu, LV_SYMBOL_LIST, "Target APs");
+        lv_obj_t *btn_attack = lv_list_add_btn(menu, LV_SYMBOL_CHARGE, "Attack");
+        lv_obj_set_style_text_color(btn_attack, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_pad_hor(btn_attack, 0, 0);
+        lv_obj_add_event_cb(btn_attack, handle_click_attack, LV_EVENT_PRESSED, nullptr);
+        lv_group_add_obj(group, btn_attack);
+
+        lv_obj_t *btn_targets = lv_list_add_btn(menu, LV_SYMBOL_LIST, "Targets");
         lv_obj_set_style_pad_hor(btn_targets, 0, 0);
         lv_obj_add_event_cb(
             btn_targets, [](lv_event_t *e)
-            { Serial.println("Pressed Targets"); },
+            { load_screen_target_select(); },
             LV_EVENT_PRESSED, nullptr);
         lv_group_add_obj(group, btn_targets);
 
-        lv_obj_t *btn_scan = lv_list_add_btn(menu, LV_SYMBOL_WIFI, "Scan APs");
+        lv_obj_t *btn_scan = lv_list_add_btn(menu, LV_SYMBOL_WIFI, "Scan");
         lv_obj_set_style_pad_hor(btn_scan, 0, 0);
         lv_obj_add_event_cb(
             btn_scan, [](lv_event_t *e)
             { Serial.println("Pressed Scan"); },
             LV_EVENT_PRESSED, nullptr);
         lv_group_add_obj(group, btn_scan);
-
-        lv_obj_t *btn_attack = lv_list_add_btn(menu, LV_SYMBOL_CHARGE, "Attack");
-        lv_obj_set_style_pad_hor(btn_attack, 0, 0);
-        lv_obj_set_style_text_color(btn_attack, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
-        lv_obj_add_event_cb(
-            btn_attack, [](lv_event_t *e)
-            { Serial.println("Pressed Attack"); },
-            LV_EVENT_PRESSED, nullptr);
-        lv_group_add_obj(group, btn_attack);
 
         lv_obj_t *btn_info = lv_list_add_btn(menu, LV_SYMBOL_HOME, "Info");
         lv_obj_set_style_pad_hor(btn_info, 0, 0);
@@ -135,6 +163,33 @@ namespace UI
         lv_group_add_obj(group, btn_info);
 
         lv_indev_set_group(ir_indev, group);
-        lv_scr_load_anim(scr, LV_SCR_LOAD_ANIM_MOVE_LEFT, 200, 0, true);
+        lv_scr_load_anim(scr, LV_SCR_LOAD_ANIM_OUT_RIGHT, 200, 0, true);
+    }
+
+    void load_test_screen() {
+        lv_obj_t *btn1 = lv_btn_create(lv_scr_act());
+        lv_obj_align(btn1, LV_ALIGN_CENTER, 0, 0);
+        lv_obj_t *lbl = lv_label_create(btn1);
+        lv_label_set_text(lbl, "Button 1");
+
+        static lv_group_t *g1;
+        static lv_group_t *g2;
+        g1 = lv_group_create();
+        lv_group_add_obj(g1, btn1);
+
+        lv_indev_set_group(ir_indev, g1);
+
+        lv_obj_add_event_cb(btn1, [] (lv_event_t *e) {
+            static lv_obj_t *msgbox;
+            msgbox = lv_msgbox_create(NULL, "Msgbox", "Content", NULL, true);
+
+            lv_obj_add_event_cb(lv_msgbox_get_close_btn(msgbox), [] (lv_event_t *e) {
+                lv_indev_set_group(ir_indev, g1);
+            }, LV_EVENT_RELEASED, NULL);
+
+            g2 = lv_group_create();
+            lv_group_add_obj(g2, lv_msgbox_get_close_btn(msgbox));
+            lv_indev_set_group(ir_indev, g2);
+        }, LV_EVENT_RELEASED, nullptr);
     }
 }
