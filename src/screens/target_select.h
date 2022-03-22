@@ -34,6 +34,10 @@ namespace UI
             lv_group_focus_next(group);
         };
 
+        auto handle_remove_all = [] (lv_event_t *e) {
+            load_screen_menu();
+        };
+
         auto handle_save = [] (lv_event_t *e) {
             load_screen_menu();
         };
@@ -49,9 +53,14 @@ namespace UI
         }
 
         lv_obj_t *btn;
+        btn = lv_list_add_btn(list, LV_SYMBOL_EJECT, "Remove all");
+        lv_obj_add_event_cb(btn, handle_remove_all, LV_EVENT_PRESSED, NULL);
+        lv_group_add_obj(group, btn);
+
         btn = lv_list_add_btn(list, LV_SYMBOL_SAVE, "Save");
         lv_obj_add_event_cb(btn, handle_save, LV_EVENT_PRESSED, NULL);
         lv_group_add_obj(group, btn);
+
         btn = lv_list_add_btn(list, LV_SYMBOL_CLOSE, "Cancel");
         lv_obj_add_event_cb(btn, handle_cancel, LV_EVENT_PRESSED, NULL);
         lv_group_add_obj(group, btn);
