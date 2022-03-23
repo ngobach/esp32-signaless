@@ -83,6 +83,10 @@ namespace BadWifi
         return targets;
     }
 
+    void set_targets(std::vector<AP> items) {
+        targets = items;
+    }
+
     Stat get_stats() {
         return Stat {            
         };

@@ -130,25 +130,7 @@ namespace UI
     {
         std::vector<BadWifi::AP> targets = BadWifi::get_targets();
         if (targets.empty()) {
-            static lv_obj_t *msgbox;
-            msgbox = lv_msgbox_create(NULL, "Error", "No target chosen", NULL, true);
-            static lv_group_t *current_group;
-            current_group = ir_indev->group;
-
-            static lv_group_t *msgbox_group;
-            msgbox_group = lv_group_create();
-            lv_group_add_obj(msgbox_group, lv_msgbox_get_close_btn(msgbox));
-            lv_indev_set_group(ir_indev, NULL);
-
-            lv_timer_t *timer = lv_timer_create([] (lv_timer_t *_) {
-                lv_indev_set_group(ir_indev, msgbox_group);
-            }, 500, NULL);
-            lv_timer_set_repeat_count(timer, 1);
-
-            lv_obj_add_event_cb(lv_msgbox_get_close_btn(msgbox), [] (lv_event_t *_) {
-                lv_msgbox_close(msgbox);
-                lv_indev_set_group(ir_indev, current_group);
-            }, LV_EVENT_PRESSED, NULL);
+            msgbox_show("Error", "No target chosen!");
         } else {
             // TODO:
         }
