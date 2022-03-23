@@ -16,6 +16,7 @@
 #include "screens/common.h"
 #include "screens/attack.h"
 #include "screens/target_select.h"
+#include "screens/info.h"
 
 namespace UI
 {
@@ -181,7 +182,7 @@ namespace UI
         lv_obj_set_style_pad_hor(btn_info, 0, 0);
         lv_obj_add_event_cb(
             btn_info, [](lv_event_t *e)
-            { Serial.println("Pressed Info"); },
+            { load_screen_info(); },
             LV_EVENT_PRESSED, NULL);
         lv_group_add_obj(group, btn_info);
 

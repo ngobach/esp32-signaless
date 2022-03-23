@@ -1,7 +1,6 @@
 #pragma once
 
 #include <lvgl.h>
-
 namespace UI
 {
     extern lv_indev_t *ir_indev;
@@ -9,6 +8,7 @@ namespace UI
     void load_test_screen();
     void load_screen_loader();
     void load_screen_menu();
+    void load_screen_info();
 
     void msgbox_show(const char *title, const char *msg)
     {

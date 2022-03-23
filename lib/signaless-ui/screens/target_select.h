@@ -12,8 +12,10 @@
 namespace UI
 {
     void load_screen_target_select() {
-        lv_obj_t *scr = lv_obj_create(NULL);
-        lv_obj_t *list = lv_list_create(scr);
+        static lv_obj_t *scr;
+        static lv_obj_t *list;
+        scr = lv_obj_create(NULL);
+        list = lv_list_create(scr);
         lv_obj_set_size(list, lv_pct(100), lv_pct(100));
         lv_obj_center(list);
 
@@ -23,14 +25,14 @@ namespace UI
         group = lv_group_create();
 
         auto handle_remove_item = [] (lv_event_t *e) {
-            const char *ssid = (const char *) e->user_data;
+            lv_obj_t *btn = e->target;
+            const char *ssid = lv_list_get_btn_text(list, btn);
             for (auto it = items.begin(); it != items.end(); it++) {
                 if (strcmp(it->ssid.c_str(), ssid) == 0) {
                     items.erase(it);
                     break;
                 }
             }
-            lv_obj_t *btn = e->target;
             lv_obj_del(btn);
             lv_group_focus_next(group);
         };
@@ -56,7 +58,7 @@ namespace UI
 
         for (const auto &it : items) {
             btn = lv_list_add_btn(list, LV_SYMBOL_WIFI, it.ssid.c_str());
-            lv_obj_add_event_cb(btn, handle_remove_item, LV_EVENT_PRESSED, (void *)it.ssid.c_str());
+            lv_obj_add_event_cb(btn, handle_remove_item, LV_EVENT_PRESSED, NULL);
             lv_group_add_obj(group, btn);
         }
 

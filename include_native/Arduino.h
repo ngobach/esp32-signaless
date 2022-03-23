@@ -13,7 +13,7 @@ uint32_t millis() {
 class FakeSerial {
 public:
     void println(const char *str) {
-        ::printf("Foobar\n");
+        printf("%s\n", str);
     }
 
     template<typename...Args>
