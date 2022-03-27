@@ -75,7 +75,7 @@ namespace BadWifi
         if (targets.empty()) {
             for (int i = 0; i < 20; i++) {
                 targets.emplace_back(AP {
-                    .ssid = std::string("Wifi No ") + std::to_string(i),
+                    .ssid = std::string("Wifi No "),
                     .bssid = {0, 0, 0, 0, 0, (uint8_t)i},
                 });
             }
